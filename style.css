@@ -1,0 +1,156 @@
+#signUpFormContainer {
+    margin: 0 auto !important;
+    margin-top: 50px !important;
+}
+
+.text {
+    color: #11414d !important;
+}
+
+.bg-color {
+    background-color: black !important;
+}
+
+.hidden {
+    display: none;
+}
+
+@font-face {
+    font-family: "RobotoSlab";
+    src: url(./fonts/RobotoSlab-VariableFont_wght.ttf);
+}
+
+* {
+    font-family: RobotoSlab;
+}
+
+.logo {
+    width: 85px;
+    height: 85px;
+}
+
+.navbar {
+    background: linear-gradient(135deg, #b37ba4 0%, #e8d9a9 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    color: #4a4a4a;
+}
+
+.navbar-brand {
+    color: #333;
+}
+
+.navbar-brand:hover {
+    color: #333;
+}
+
+.profile-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    /* Add a pointer cursor to indicate it's clickable */
+}
+
+.profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+ .postBtn,
+.editBtn {
+  background: linear-gradient(135deg, #b37ba4 0%, #e8d9a9 100%);
+  color: #2e2e2e;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(179, 123, 164, 0.3);
+}
+
+/* Hover effect */
+.postBtn:hover,
+.editBtn:hover {
+  background: linear-gradient(135deg, #a46b94 0%, #d7c999 100%);
+  box-shadow: 0 6px 14px rgba(179, 123, 164, 0.5);
+  transform: translateY(-2px);
+}
+
+.deleteBtn:hover {
+    background-color: #ffff;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+
+}
+
+.swal2-confirm {
+    background-color: blue;
+}
+
+.images {
+    justify-content: space-around;
+}
+
+.bg-img {
+    height: 50px;
+    width: 50px;
+    border-radius: 5px;
+}
+
+.selectedImg {
+    border: 2px solid #F8E9D4;
+}
+
+.name-time {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.time {
+    font-size: 12px;
+    /* adjust the font size as needed */
+    color: #666;
+    /* adjust the color as needed */
+}
+
+#post {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+.post-card {
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.profile-photo {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.editBtn {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+}
+
+.editBtn:hover {
+    background-color: white;
+}
