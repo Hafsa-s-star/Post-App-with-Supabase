@@ -1,20 +1,33 @@
- import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 const supabase = createClient(
-  'https://uiwmuwqarhngnhppqfqo.supabase.co',
-  'sb_publishable_lXI3MvI6rVyWQKQ4P5r2ZA_zP8Ix1D7'
+  "https://uiwmuwqarhngnhppqfqo.supabase.co",
+  "sb_publishable_lXI3MvI6rVyWQKQ4P5r2ZA_zP8Ix1D7"
 );
+
+// ========================= VARIABLES =========================
 
 let firstName = "";
 let lastName = "";
+
 let editCard = null;
 let editId = null;
 
+let email ;
+
+// Default background
+let selectedBackground = "Images/bg1.jpg";
+
+// ========================= ELEMENTS =========================
+
 const profilePhotoImg = document.getElementById("profilePhotoImg");
 const profilePhotoInput = document.getElementById("profilePhotoInput");
+
 const signUpForm = document.getElementById("signUpForm");
 const signUpFormContainer = document.getElementById("signUpFormContainer");
 const postApp = document.getElementById("postApp");
+
+// ========================= PROFILE PHOTO =========================
 
 profilePhotoImg.addEventListener("click", () => {
   profilePhotoInput.click();
@@ -34,16 +47,25 @@ profilePhotoInput.addEventListener("change", (e) => {
   reader.readAsDataURL(file);
 });
 
-signUpForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+// ========================= BACKGROUND SELECT =========================
+
+function selectBackground(img) {
+  document.querySelectorAll(".bg-img").forEach((image) => {
+    image.classList.remove("selectedImg");
+  });
+
+  img.classList.add("selectedImg");
+
+  selectedBackground = img.src;
+}
+
+// ========================= SIGN UP =========================
+
+signUpForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
   firstName = document.getElementById("inputFirstName").value;
   lastName = document.getElementById("inputLastName").value;
-
-console.log(document.getElementById("inputFirstName"));
-console.log(document.getElementById("inputLastName"));
-console.log(document.getElementById("inputEmail4"));
-console.log(document.getElementById("inputPassword4"));
 
   const email = document.getElementById("inputEmail4").value;
   const password = document.getElementById("inputPassword4").value;
@@ -58,15 +80,15 @@ console.log(document.getElementById("inputPassword4"));
       icon: "error",
       title: error.message,
     });
+
     return;
   }
 
   Swal.fire({
-    position: "top-end",
     icon: "success",
-    title: "Account created successfully!",
-    showConfirmButton: false,
+    title: "Account Created Successfully",
     timer: 1500,
+    showConfirmButton: false,
   });
 
   signUpForm.reset();
@@ -75,46 +97,33 @@ console.log(document.getElementById("inputPassword4"));
   postApp.classList.remove("hidden");
 });
 
-function getRandomGradient() {
-  const gradients = [
-    "linear-gradient(135deg, #A734BD, #FF006A)",
-    "linear-gradient(135deg, #0072ff, #00c6ff)",
-    "linear-gradient(135deg, #ff9966, #ff5e62)",
-    "linear-gradient(135deg, #7F00FF, #E100FF)",
-    "linear-gradient(135deg, #11998e, #38ef7d)",
-    "linear-gradient(135deg, #f7971e, #ffd200)"
-  ];
-
-  return gradients[Math.floor(Math.random() * gradients.length)];
-}
+// ========================= CREATE / UPDATE POST =========================
 
 async function post() {
   const titleInput = document.getElementById("title");
   const descriptionInput = document.getElementById("description");
 
-  const title = titleInput.value;
-  const description = descriptionInput.value;
+  const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
 
-  const currentTime = new Date().toLocaleTimeString();
-
-  if (!title.trim() || !description.trim()) {
+  if (!title || !description) {
     Swal.fire({
-      title: "Empty Post",
-      text: "Can't publish post without Title or Description",
-      icon: "question",
+      icon: "warning",
+      title: "Please fill all fields",
     });
+
     return;
   }
 
-  const postContainer = document.getElementById("post");
+  // UPDATE
 
-  // UPDATE POST
   if (editId) {
     const { error } = await supabase
       .from("my-posts")
       .update({
         title,
         description,
+        background: selectedBackground,
       })
       .eq("id", editId);
 
@@ -123,8 +132,10 @@ async function post() {
       return;
     }
 
-    editCard.querySelector("h5").textContent = title;
-    editCard.querySelector("p").textContent = description;
+    Swal.fire({
+      icon: "success",
+      title: "Post Updated",
+    });
 
     editCard = null;
     editId = null;
@@ -132,77 +143,40 @@ async function post() {
     titleInput.value = "";
     descriptionInput.value = "";
 
-    Swal.fire({
-      icon: "success",
-      title: "Post Updated",
-    });
+    await getPosts();
 
     return;
   }
 
-  // CREATE POST
-  const { data, error } = await supabase
+  // CREATE
+
+  const { error } = await supabase
     .from("my-posts")
     .insert({
       title,
       description,
-    })
-    .select();
+      background: selectedBackground,
+    });
 
   if (error) {
     Swal.fire(error.message);
     return;
   }
 
-  const gradient = getRandomGradient();
-  const postId = data[0].id;
-
-  postContainer.innerHTML += `
-    <div
-      class="card p-3 mb-3 post-card"
-      data-id="${postId}"
-      style="background:${gradient}"
-    >
-      <div class="card-header d-flex align-items-center mb-2">
-        <img
-          class="profile-photo me-2"
-          src="${profilePhotoImg.src}"
-        />
-
-        <div class="name-time d-flex flex-column">
-          <strong>${firstName} ${lastName}</strong>
-          <small>${currentTime}</small>
-        </div>
-      </div>
-
-      <div class="card-body text-white">
-        <h5>${title}</h5>
-        <p>${description}</p>
-      </div>
-
-      <div class="card-footer d-flex justify-content-end">
-        <button
-          type="button"
-          onclick="editpost(this)"
-          class="btn editBtn me-2"
-        >
-          Edit
-        </button>
-
-        <button
-          type="button"
-          onclick="deletePost(this)"
-          class="btn btn-danger deleteBtn"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  `;
+  Swal.fire({
+    icon: "success",
+    title: "Post Created",
+    timer: 1200,
+    showConfirmButton: false,
+  });
 
   titleInput.value = "";
   descriptionInput.value = "";
+
+  await getPosts();
 }
+
+// ========================= EDIT POST =========================
 
 function editpost(button) {
   editCard = button.closest(".card");
@@ -214,14 +188,29 @@ function editpost(button) {
   document.getElementById("description").value =
     editCard.querySelector("p").textContent;
 
+  // Save current background
+  selectedBackground = editCard.dataset.background;
+
+  // Highlight selected image
+  document.querySelectorAll(".bg-img").forEach((img) => {
+    img.classList.remove("selectedImg");
+
+    if (img.src === selectedBackground) {
+      img.classList.add("selectedImg");
+    }
+  });
+
   window.scrollTo({
     top: 0,
     behavior: "smooth",
   });
 }
 
+// ========================= DELETE POST =========================
+
 async function deletePost(button) {
   const card = button.closest(".card");
+
   const id = card.dataset.id;
 
   const { error } = await supabase
@@ -234,10 +223,12 @@ async function deletePost(button) {
     return;
   }
 
-  card.remove();
+  await getPosts();
 }
 
- async function getPosts() {
+// ========================= LOAD POSTS =========================
+
+async function getPosts() {
   const { data, error } = await supabase
     .from("my-posts")
     .select("*")
@@ -249,61 +240,180 @@ async function deletePost(button) {
   }
 
   const postContainer = document.getElementById("post");
+
   postContainer.innerHTML = "";
 
   data.forEach((item) => {
-    const gradient = getRandomGradient();
 
     postContainer.innerHTML += `
+
+<div
+class="card post-card mb-4 text-white"
+data-id="${item.id}"
+data-background="${item.background}"
+
+style="
+background-image:url('${item.background}');
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+"
+>
+
+<div
+style="
+background:rgba(0,0,0,.45);
+border-radius:16px;
+padding:18px;
+height:100%;
+">
+
+<div class="card-header d-flex align-items-center">
+
+<img
+class="profile-photo me-2"
+src="${profilePhotoImg.src}"
+>
+
+<div>
+
+<strong>${firstName} ${lastName}</strong>
+
+<br>
+
+<small>
+
+${
+item.created_at
+? new Date(item.created_at).toLocaleTimeString()
+: ""
+}
+
+</small>
+
+</div>
+
+</div>
+
+<div class="card-body">
+
+<h5>${item.title}</h5>
+
+<p>${item.description}</p>
+
+</div>
+
+<div class="card-footer border-0 bg-transparent text-end">
+
+<button
+class="btn editBtn me-2"
+onclick="editpost(this)"
+>
+
+Edit
+
+</button>
+
+<button
+class="btn btn-danger"
+onclick="deletePost(this)"
+>
+
+Delete
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+  });
+}
+
+// ========================= SEARCH  =========================
+
+async function searchPosts() {
+  const search = document.getElementById("searchInput").value;
+
+  const { data, error } = await supabase
+    .from("my-posts")
+    .select("*")
+    .or(`title.like.%${search}%,description.like.%${search}%`)
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  const postContainer = document.getElementById("post");
+  postContainer.innerHTML = "";
+
+  data.forEach((item) => {
+    postContainer.innerHTML += `
       <div
-        class="card p-3 mb-3 post-card"
+        class="card post-card mb-4 text-white"
         data-id="${item.id}"
-        style="background:${gradient}"
+        data-background="${item.background}"
+        style="
+          background-image:url('${item.background}');
+          background-size:cover;
+          background-position:center;
+          background-repeat:no-repeat;
+        "
       >
-        <div class="card-header d-flex align-items-center mb-2">
-          <img
-            class="profile-photo me-2"
-            src="${profilePhotoImg.src}"
-          />
 
-          <div class="name-time d-flex flex-column">
-            <strong>${firstName} ${lastName}</strong>
-            <small>
-              ${
-                item.created_at
+        <div style="background:rgba(0,0,0,.45);padding:18px;border-radius:16px;">
+
+          <div class="card-header d-flex align-items-center">
+            <img class="profile-photo me-2" src="${profilePhotoImg.src}">
+            <div>
+              <strong>${firstName} ${lastName}</strong><br>
+              <small>
+                ${item.created_at
                   ? new Date(item.created_at).toLocaleTimeString()
-                  : ""
-              }
-            </small>
+                  : ""}
+              </small>
+            </div>
           </div>
-        </div>
 
-        <div class="card-body text-white">
-          <h5>${item.title}</h5>
-          <p>${item.description}</p>
-        </div>
+          <div class="card-body">
+            <h5>${item.title}</h5>
+            <p>${item.description}</p>
+          </div>
 
-        <div class="card-footer d-flex justify-content-end">
-          <button
-            type="button"
-            onclick="editpost(this)"
-            class="btn editBtn me-2"
-          >
-            Edit
-          </button>
+          <div class="card-footer text-end bg-transparent border-0">
+            <button class="btn editBtn me-2" onclick="editpost(this)">Edit</button>
+            <button class="btn btn-danger" onclick="deletePost(this)">Delete</button>
+          </div>
 
-          <button
-            type="button"
-            onclick="deletePost(this)"
-            class="btn btn-danger deleteBtn"
-          >
-            Delete
-          </button>
         </div>
       </div>
     `;
   });
 }
+
+// ========================= AUTH STATE =========================
+
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log(event, session);
+
+  if (session) {
+    signUpFormContainer.classList.add("hidden");
+    postApp.classList.remove("hidden");
+
+    getPosts();
+  } else {
+    signUpFormContainer.classList.remove("hidden");
+    postApp.classList.add("hidden");
+  }
+});
+
+// ========================= INITIAL LOAD =========================
 
 window.addEventListener("DOMContentLoaded", async () => {
   const {
@@ -321,6 +431,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// ========================= GLOBAL EXPORTS =========================
+
 window.post = post;
 window.editpost = editpost;
 window.deletePost = deletePost;
+window.searchPosts = searchPosts;
+window.selectBackground = selectBackground;

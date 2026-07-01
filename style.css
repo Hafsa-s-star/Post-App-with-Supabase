@@ -154,3 +154,17 @@
 .editBtn:hover {
     background-color: white;
 }
+
+.post-card{
+    background-size: cover;
+    background-position: center;
+    color:white;
+    overflow:hidden;
+}
+
+.overlay{
+    background:rgba(0,0,0,.45);
+    padding:20px;
+    border-radius:16px;
+    height:100%;
+}
