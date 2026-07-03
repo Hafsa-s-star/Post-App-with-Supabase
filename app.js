@@ -1,4 +1,4 @@
- import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 const supabase = createClient(
   "https://uiwmuwqarhngnhppqfqo.supabase.co",
@@ -13,10 +13,14 @@ let lastName = "";
 let editCard = null;
 let editId = null;
 
-let email ;
+
+
+
+let email  ;
+let userId ;
 
 // Default background
-let selectedBackground = "Images/bg1.jpg";
+let selectedBackground = "Images/background 1.jpg";
 
 // ========================= ELEMENTS =========================
 
@@ -106,6 +110,12 @@ async function post() {
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
 
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log(user)
+
+  let email = user.email;
+  let userId = user.id;
+
   if (!title || !description) {
     Swal.fire({
       icon: "warning",
@@ -156,6 +166,8 @@ async function post() {
       title,
       description,
       background: selectedBackground,
+      email: email,
+      user_id: userId
     });
 
   if (error) {
@@ -277,17 +289,16 @@ src="${profilePhotoImg.src}"
 
 <div>
 
-<strong>${firstName} ${lastName}</strong>
+<strong>${item.email}</strong>
 
 <br>
 
 <small>
 
-${
-item.created_at
-? new Date(item.created_at).toLocaleTimeString()
-: ""
-}
+${item.created_at
+        ? new Date(item.created_at).toLocaleTimeString()
+        : ""
+      }
 
 </small>
 
@@ -342,7 +353,7 @@ async function searchPosts() {
   const { data, error } = await supabase
     .from("my-posts")
     .select("*")
-    .or(`title.like.%${search}%,description.like.%${search}%`)
+    .or(`title.like.%${search}%,description.like.%${search}%,email.like.%${email}%`)
     .order("id", { ascending: false });
 
   if (error) {
@@ -372,11 +383,11 @@ async function searchPosts() {
           <div class="card-header d-flex align-items-center">
             <img class="profile-photo me-2" src="${profilePhotoImg.src}">
             <div>
-              <strong>${firstName} ${lastName}</strong><br>
+              <strong>${item.email}</strong><br>
               <small>
                 ${item.created_at
-                  ? new Date(item.created_at).toLocaleTimeString()
-                  : ""}
+        ? new Date(item.created_at).toLocaleTimeString()
+        : ""}
               </small>
             </div>
           </div>
