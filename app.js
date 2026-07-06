@@ -30,26 +30,13 @@ const profilePhotoInput = document.getElementById("profilePhotoInput");
 const signUpForm = document.getElementById("signUpForm");
 const signUpFormContainer = document.getElementById("signUpFormContainer");
 const postApp = document.getElementById("postApp");
+const profileBtn = document.getElementById("profileBtn");
+const dropdown = document.getElementById("profileDropdown");
 
-// ========================= PROFILE PHOTO =========================
-
-profilePhotoImg.addEventListener("click", () => {
-  profilePhotoInput.click();
+profileBtn.addEventListener("click", () => {
+  dropdown.classList.toggle("hidden");
 });
 
-profilePhotoInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    profilePhotoImg.src = reader.result;
-  };
-
-  reader.readAsDataURL(file);
-});
 
 // ========================= BACKGROUND SELECT =========================
 
@@ -74,11 +61,17 @@ signUpForm.addEventListener("submit", async (e) => {
   const email = document.getElementById("inputEmail4").value;
   const password = document.getElementById("inputPassword4").value;
 
-  const { error } = await supabase.auth.signUp({
+  const { data , error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        full_name: `${firstName} ${lastName}`,
+      },
+    },
   });
-
+ console.log(data)
+ console.log(error)
   if (error) {
     Swal.fire({
       icon: "error",
@@ -113,6 +106,14 @@ async function post() {
   const { data: { user } } = await supabase.auth.getUser()
   console.log(user)
 
+  if (!user) {
+    Swal.fire({
+      icon: "error",
+      title: "Please log in first.",
+    });
+    return;
+  }
+
   let email = user.email;
   let userId = user.id;
 
@@ -128,6 +129,10 @@ async function post() {
   // UPDATE
 
   if (editId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+  
     const { error } = await supabase
       .from("my-posts")
       .update({
@@ -135,31 +140,35 @@ async function post() {
         description,
         background: selectedBackground,
       })
-      .eq("id", editId);
-
+      .eq("id", editId)
+      .eq("user_id", user.id);
+  
     if (error) {
-      Swal.fire(error.message);
+      Swal.fire({
+        icon: "error",
+        title: "You cannot update someone else's post.",
+      });
       return;
     }
-
+  
     Swal.fire({
       icon: "success",
       title: "Post Updated",
     });
-
+  
     editCard = null;
     editId = null;
-
+  
     titleInput.value = "";
     descriptionInput.value = "";
-
+  
     await getPosts();
-
+  
     return;
   }
 
   // CREATE
-
+  const fullName = user.user_metadata.full_name;
   const { error } = await supabase
     .from("my-posts")
     .insert({
@@ -167,6 +176,7 @@ async function post() {
       description,
       background: selectedBackground,
       email: email,
+      name: user.user_metadata.full_name,
       user_id: userId
     });
 
@@ -190,27 +200,31 @@ async function post() {
 
 // ========================= EDIT POST =========================
 
-function editpost(button) {
-  editCard = button.closest(".card");
-  editId = editCard.dataset.id;
+async function editpost(button) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const card = button.closest(".card");
+
+  if (card.dataset.userid !== user.id) {
+    Swal.fire({
+      icon: "error",
+      title: "You can only edit your own posts.",
+    });
+    return;
+  }
+
+  editCard = card;
+  editId = card.dataset.id;
 
   document.getElementById("title").value =
-    editCard.querySelector("h5").textContent;
+    card.querySelector("h5").textContent;
 
   document.getElementById("description").value =
-    editCard.querySelector("p").textContent;
+    card.querySelector("p").textContent;
 
-  // Save current background
-  selectedBackground = editCard.dataset.background;
-
-  // Highlight selected image
-  document.querySelectorAll(".bg-img").forEach((img) => {
-    img.classList.remove("selectedImg");
-
-    if (img.src === selectedBackground) {
-      img.classList.add("selectedImg");
-    }
-  });
+  selectedBackground = card.dataset.background;
 
   window.scrollTo({
     top: 0,
@@ -221,7 +235,19 @@ function editpost(button) {
 // ========================= DELETE POST =========================
 
 async function deletePost(button) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const card = button.closest(".card");
+
+  if (card.dataset.userid !== user.id) {
+    Swal.fire({
+      icon: "error",
+      title: "You can only delete your own posts.",
+    });
+    return;
+  }
 
   const id = card.dataset.id;
 
@@ -231,7 +257,10 @@ async function deletePost(button) {
     .eq("id", id);
 
   if (error) {
-    Swal.fire(error.message);
+    Swal.fire({
+      icon: "error",
+      title: error.message,
+    });
     return;
   }
 
@@ -262,6 +291,7 @@ async function getPosts() {
 <div
 class="card post-card mb-4 text-white"
 data-id="${item.id}"
+data-userid="${item.user_id}"
 data-background="${item.background}"
 
 style="
@@ -289,7 +319,7 @@ src="${profilePhotoImg.src}"
 
 <div>
 
-<strong>${item.email}</strong>
+<strong>${item.name}</strong>
 
 <br>
 
@@ -351,11 +381,12 @@ async function searchPosts() {
   const search = document.getElementById("searchInput").value;
 
   const { data, error } = await supabase
-    .from("my-posts")
-    .select("*")
-    .or(`title.like.%${search}%,description.like.%${search}%,email.like.%${email}%`)
-    .order("id", { ascending: false });
-
+  .from("my-posts")
+  .select("*")
+  .or(
+    `title.ilike.%${search}%,description.ilike.%${search}%,name.ilike.%${search}%`
+  )
+  .order("id", { ascending: false });
   if (error) {
     console.log(error);
     return;
@@ -369,6 +400,7 @@ async function searchPosts() {
       <div
         class="card post-card mb-4 text-white"
         data-id="${item.id}"
+        data-userid="${item.user_id}"
         data-background="${item.background}"
         style="
           background-image:url('${item.background}');
@@ -383,7 +415,7 @@ async function searchPosts() {
           <div class="card-header d-flex align-items-center">
             <img class="profile-photo me-2" src="${profilePhotoImg.src}">
             <div>
-              <strong>${item.email}</strong><br>
+              <strong>${item.name}</strong><br>
               <small>
                 ${item.created_at
         ? new Date(item.created_at).toLocaleTimeString()
@@ -440,7 +472,43 @@ window.addEventListener("DOMContentLoaded", async () => {
     signUpFormContainer.classList.remove("hidden");
     postApp.classList.add("hidden");
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  if (user) {
+    const fullName = user.user_metadata.full_name;
+  
+    document.getElementById("userName").textContent = fullName;
+  
+    document.getElementById("profileBtn").textContent =
+      fullName.charAt(0).toUpperCase();
+  }
 });
+
+async function logout() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    Swal.fire({
+      icon: "error",
+      title: error.message,
+    });
+    return;
+  }
+
+  Swal.fire({
+    icon: "success",
+    title: "Logged out successfully",
+    timer: 1000,
+    showConfirmButton: false,
+  });
+
+  location.reload();
+}
+
+
 
 // ========================= GLOBAL EXPORTS =========================
 
@@ -449,3 +517,4 @@ window.editpost = editpost;
 window.deletePost = deletePost;
 window.searchPosts = searchPosts;
 window.selectBackground = selectBackground;
+window.logout = logout;

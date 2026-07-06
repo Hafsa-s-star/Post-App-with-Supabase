@@ -17,7 +17,7 @@
 
     <h2 class="text-center mb-3">
       <img class="logo" src="Images/logo.png" alt="">
-      Create Your Account
+      SignUp
     </h2>
 
     <form id="signUpForm">
@@ -278,6 +278,16 @@
           class="col-lg-8"
           id="post"
         ></div>
+
+        <!-- LOGOUT -->
+        <div class="profile-menu">
+          <button id="profileBtn" class="profile-btn"></button>
+        
+          <div id="profileDropdown" class="dropdown hidden">
+            <p id="userName"></p>
+            <button onclick="logout()">Logout</button>
+          </div>
+        </div>
 
       </div>
 

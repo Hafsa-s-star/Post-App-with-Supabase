@@ -168,3 +168,34 @@
     border-radius:16px;
     height:100%;
 }
+
+.profile-menu{
+    position: fixed;
+    top:20px;
+    right:20px;
+}
+
+.profile-btn{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    border:none;
+    background:#0d6efd;
+    color:#fff;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.dropdown{
+    margin-top:10px;
+    background:#fff;
+    color:#000;
+    border-radius:10px;
+    padding:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+
+.hidden{
+    display:none;
+}
