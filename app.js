@@ -312,10 +312,6 @@ height:100%;
 
 <div class="card-header d-flex align-items-center">
 
-<img
-class="profile-photo me-2"
-src="${profilePhotoImg.src}"
->
 
 <div>
 
@@ -413,7 +409,7 @@ async function searchPosts() {
         <div style="background:rgba(0,0,0,.45);padding:18px;border-radius:16px;">
 
           <div class="card-header d-flex align-items-center">
-            <img class="profile-photo me-2" src="${profilePhotoImg.src}">
+          
             <div>
               <strong>${item.name}</strong><br>
               <small>

@@ -45,13 +45,13 @@
     color: #333;
 }
 
-.profile-photo {
+/* .profile-photo {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     overflow: hidden;
     cursor: pointer;
-    /* Add a pointer cursor to indicate it's clickable */
+    Add a pointer cursor to indicate it's clickable
 }
 
 .profile-photo img {
@@ -59,7 +59,7 @@
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
-}
+} */
 
  .postBtn,
 .editBtn {
@@ -95,7 +95,10 @@
 }
 
 .images {
-    justify-content: space-around;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 .bg-img {
@@ -139,12 +142,12 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.profile-photo {
+/* .profile-photo {
     width: 45px;
     height: 45px;
     border-radius: 50%;
     object-fit: cover;
-}
+} */
 
 .editBtn {
     background-color: rgba(255, 255, 255, 0.8);
@@ -169,33 +172,60 @@
     height:100%;
 }
 
-.profile-menu{
-    position: fixed;
-    top:20px;
-    right:20px;
+.profile-menu {
+    position: relative;
 }
 
-.profile-btn{
-    width:45px;
-    height:45px;
-    border-radius:50%;
-    border:none;
-    background:#0d6efd;
-    color:#fff;
-    font-size:20px;
-    font-weight:bold;
-    cursor:pointer;
+.profile-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: linear-gradient(135deg, #b37ba4 0%, #e8d9a9 100%);
+    color: #333;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,.25);
+    transition: .3s;
 }
 
-.dropdown{
-    margin-top:10px;
-    background:#fff;
-    color:#000;
-    border-radius:10px;
-    padding:10px;
-    box-shadow:0 0 10px rgba(0,0,0,.2);
+.profile-btn:hover {
+    transform: scale(1.08);
+}
+
+.dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 180px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+    z-index: 999;
 }
 
 .hidden{
     display:none;
+}
+
+.btn-upload {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    border: 2px dashed #b37ba4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(135deg, #b37ba4 0%, #e8d9a9 100%);
+    color: #333;
+    transition: .3s;
+}
+
+.btn-upload:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(0,0,0,.25);
 }
