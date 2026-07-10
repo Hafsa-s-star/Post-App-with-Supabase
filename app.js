@@ -99,7 +99,10 @@ signUpForm.addEventListener("submit", async (e) => {
 async function post() {
   const titleInput = document.getElementById("title");
   const descriptionInput = document.getElementById("description");
-
+  const imageInput = document.getElementById("background-image");
+  const imageFile = imageInput.files[0];
+ 
+ 
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
 
@@ -125,6 +128,33 @@ async function post() {
 
     return;
   }
+
+  let imageUrl = ""
+  if(imageFile) {
+    let fileName = `${Date.now()}-${imageFile.name}`
+    const {error : uploadError} = await supabase 
+    .storage
+    .from('post-images')
+    .upload(fileName , imageFile, {
+      cacheControl : '3600',
+      upsert: false
+    })
+    if(uploadError) {
+      alert("Image Upload Failed!")
+      console.log(uploadError);
+      return
+    }
+    const {data: imageData} = supabase
+    .storage
+    .from('post-images')
+    .getPublicUrl(fileName)
+    // console.log(imageData.publicUrl);
+    imageUrl = imageData.publicUrl
+
+  }else if(selectedBackground){
+    imageUrl = selectedBackground
+  } console.log("selectedBackground:", selectedBackground);
+console.log("imageUrl:", imageUrl);
 
   // UPDATE
 
@@ -174,7 +204,7 @@ async function post() {
     .insert({
       title,
       description,
-      background: selectedBackground,
+      background: imageUrl,
       email: email,
       name: user.user_metadata.full_name,
       user_id: userId
@@ -504,10 +534,27 @@ async function logout() {
   location.reload();
 }
 
+async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  });
+
+  if (error) {
+    Swal.fire({
+      icon: "error",
+      title: error.message,
+    });
+  }
+}
+
 
 
 // ========================= GLOBAL EXPORTS =========================
 
+window.signInWithGoogle = signInWithGoogle;
 window.post = post;
 window.editpost = editpost;
 window.deletePost = deletePost;
