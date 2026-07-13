@@ -16,16 +16,13 @@ let editId = null;
 
 
 
-let email  ;
-let userId ;
+let email;
+let userId;
 
 // Default background
 let selectedBackground = "Images/background 1.jpg";
 
 // ========================= ELEMENTS =========================
-
-const profilePhotoImg = document.getElementById("profilePhotoImg");
-const profilePhotoInput = document.getElementById("profilePhotoInput");
 
 const signUpForm = document.getElementById("signUpForm");
 const signUpFormContainer = document.getElementById("signUpFormContainer");
@@ -61,7 +58,7 @@ signUpForm.addEventListener("submit", async (e) => {
   const email = document.getElementById("inputEmail4").value;
   const password = document.getElementById("inputPassword4").value;
 
-  const { data , error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -70,8 +67,8 @@ signUpForm.addEventListener("submit", async (e) => {
       },
     },
   });
- console.log(data)
- console.log(error)
+  console.log(data)
+  console.log(error)
   if (error) {
     Swal.fire({
       icon: "error",
@@ -101,8 +98,8 @@ async function post() {
   const descriptionInput = document.getElementById("description");
   const imageInput = document.getElementById("background-image");
   const imageFile = imageInput.files[0];
- 
- 
+
+
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
 
@@ -130,31 +127,31 @@ async function post() {
   }
 
   let imageUrl = ""
-  if(imageFile) {
+  if (imageFile) {
     let fileName = `${Date.now()}-${imageFile.name}`
-    const {error : uploadError} = await supabase 
-    .storage
-    .from('post-images')
-    .upload(fileName , imageFile, {
-      cacheControl : '3600',
-      upsert: false
-    })
-    if(uploadError) {
+    const { error: uploadError } = await supabase
+      .storage
+      .from('post-images')
+      .upload(fileName, imageFile, {
+        cacheControl: '3600',
+        upsert: false
+      })
+    if (uploadError) {
       alert("Image Upload Failed!")
       console.log(uploadError);
       return
     }
-    const {data: imageData} = supabase
-    .storage
-    .from('post-images')
-    .getPublicUrl(fileName)
+    const { data: imageData } = supabase
+      .storage
+      .from('post-images')
+      .getPublicUrl(fileName)
     // console.log(imageData.publicUrl);
     imageUrl = imageData.publicUrl
 
-  }else if(selectedBackground){
+  } else if (selectedBackground) {
     imageUrl = selectedBackground
   } console.log("selectedBackground:", selectedBackground);
-console.log("imageUrl:", imageUrl);
+  console.log("imageUrl:", imageUrl);
 
   // UPDATE
 
@@ -162,7 +159,7 @@ console.log("imageUrl:", imageUrl);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-  
+
     const { error } = await supabase
       .from("my-posts")
       .update({
@@ -172,7 +169,7 @@ console.log("imageUrl:", imageUrl);
       })
       .eq("id", editId)
       .eq("user_id", user.id);
-  
+
     if (error) {
       Swal.fire({
         icon: "error",
@@ -180,20 +177,20 @@ console.log("imageUrl:", imageUrl);
       });
       return;
     }
-  
+
     Swal.fire({
       icon: "success",
       title: "Post Updated",
     });
-  
+
     editCard = null;
     editId = null;
-  
+
     titleInput.value = "";
     descriptionInput.value = "";
-  
+
     await getPosts();
-  
+
     return;
   }
 
@@ -300,7 +297,7 @@ async function deletePost(button) {
 // ========================= LOAD POSTS =========================
 
 async function getPosts() {
-  const { data, error } = await supabase
+  const { data , error } = await supabase
     .from("my-posts")
     .select("*")
     .order("id", { ascending: false });
@@ -310,254 +307,222 @@ async function getPosts() {
     return;
   }
 
-  const postContainer = document.getElementById("post");
-
-  postContainer.innerHTML = "";
-
-  data.forEach((item) => {
-
-    postContainer.innerHTML += `
-
-<div
-class="card post-card mb-4 text-white"
-data-id="${item.id}"
-data-userid="${item.user_id}"
-data-background="${item.background}"
-
-style="
-background-image:url('${item.background}');
-background-size:cover;
-background-position:center;
-background-repeat:no-repeat;
-"
->
-
-<div
-style="
-background:rgba(0,0,0,.45);
-border-radius:16px;
-padding:18px;
-height:100%;
-">
-
-<div class="card-header d-flex align-items-center">
-
-
-<div>
-
-<strong>${item.name}</strong>
-
-<br>
-
-<small>
-
-${item.created_at
-        ? new Date(item.created_at).toLocaleTimeString()
-        : ""
-      }
-
-</small>
-
-</div>
-
-</div>
-
-<div class="card-body">
-
-<h5>${item.title}</h5>
-
-<p>${item.description}</p>
-
-</div>
-
-<div class="card-footer border-0 bg-transparent text-end">
-
-<button
-class="btn editBtn me-2"
-onclick="editpost(this)"
->
-
-Edit
-
-</button>
-
-<button
-class="btn btn-danger"
-onclick="deletePost(this)"
->
-
-Delete
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-`;
-
-  });
+  renderData(data)
 }
+  // ========================= SEARCH  =========================
 
-// ========================= SEARCH  =========================
+  async function searchPosts() {
+    const search = document.getElementById("searchInput").value;
 
-async function searchPosts() {
-  const search = document.getElementById("searchInput").value;
-
-  const { data, error } = await supabase
-  .from("my-posts")
-  .select("*")
-  .or(
-    `title.ilike.%${search}%,description.ilike.%${search}%,name.ilike.%${search}%`
-  )
-  .order("id", { ascending: false });
-  if (error) {
-    console.log(error);
-    return;
+    const { data, error } = await supabase
+      .from("my-posts")
+      .select("*")
+      .or(
+        `title.ilike.%${search}%,description.ilike.%${search}%,name.ilike.%${search}%`
+      )
+      .order("id", { ascending: false });
+    if (error) {
+      console.log(error);
+      return;
+    }
+     renderData(data);
   }
+  // ========================= AUTH STATE =========================
 
-  const postContainer = document.getElementById("post");
-  postContainer.innerHTML = "";
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log(event, session);
 
-  data.forEach((item) => {
-    postContainer.innerHTML += `
-      <div
-        class="card post-card mb-4 text-white"
-        data-id="${item.id}"
-        data-userid="${item.user_id}"
-        data-background="${item.background}"
-        style="
-          background-image:url('${item.background}');
-          background-size:cover;
-          background-position:center;
-          background-repeat:no-repeat;
-        "
-      >
+    if (session) {
+      signUpFormContainer.classList.add("hidden");
+      postApp.classList.remove("hidden");
 
-        <div style="background:rgba(0,0,0,.45);padding:18px;border-radius:16px;">
-
-          <div class="card-header d-flex align-items-center">
-          
-            <div>
-              <strong>${item.name}</strong><br>
-              <small>
-                ${item.created_at
-        ? new Date(item.created_at).toLocaleTimeString()
-        : ""}
-              </small>
-            </div>
-          </div>
-
-          <div class="card-body">
-            <h5>${item.title}</h5>
-            <p>${item.description}</p>
-          </div>
-
-          <div class="card-footer text-end bg-transparent border-0">
-            <button class="btn editBtn me-2" onclick="editpost(this)">Edit</button>
-            <button class="btn btn-danger" onclick="deletePost(this)">Delete</button>
-          </div>
-
-        </div>
-      </div>
-    `;
+      getPosts();
+    } else {
+      signUpFormContainer.classList.remove("hidden");
+      postApp.classList.add("hidden");
+    }
   });
-}
 
-// ========================= AUTH STATE =========================
+  // ========================= INITIAL LOAD =========================
 
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log(event, session);
+  window.addEventListener("DOMContentLoaded", async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  if (session) {
-    signUpFormContainer.classList.add("hidden");
-    postApp.classList.remove("hidden");
+    if (session) {
+      signUpFormContainer.classList.add("hidden");
+      postApp.classList.remove("hidden");
 
-    getPosts();
-  } else {
-    signUpFormContainer.classList.remove("hidden");
-    postApp.classList.add("hidden");
-  }
-});
+      await getPosts();
+    } else {
+      signUpFormContainer.classList.remove("hidden");
+      postApp.classList.add("hidden");
+    }
 
-// ========================= INITIAL LOAD =========================
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-window.addEventListener("DOMContentLoaded", async () => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    if (user) {
+      const fullName = user.user_metadata.full_name;
 
-  if (session) {
-    signUpFormContainer.classList.add("hidden");
-    postApp.classList.remove("hidden");
+      document.getElementById("userName").textContent = fullName;
 
-    await getPosts();
-  } else {
-    signUpFormContainer.classList.remove("hidden");
-    postApp.classList.add("hidden");
-  }
+      document.getElementById("profileBtn").textContent =
+        fullName.charAt(0).toUpperCase();
+    }
+  });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  
-  if (user) {
-    const fullName = user.user_metadata.full_name;
-  
-    document.getElementById("userName").textContent = fullName;
-  
-    document.getElementById("profileBtn").textContent =
-      fullName.charAt(0).toUpperCase();
-  }
-});
+  async function logout() {
+    const { error } = await supabase.auth.signOut();
 
-async function logout() {
-  const { error } = await supabase.auth.signOut();
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: error.message,
+      });
+      return;
+    }
 
-  if (error) {
     Swal.fire({
-      icon: "error",
-      title: error.message,
+      icon: "success",
+      title: "Logged out successfully",
+      timer: 1000,
+      showConfirmButton: false,
     });
-    return;
+
+    location.reload();
   }
 
-  Swal.fire({
-    icon: "success",
-    title: "Logged out successfully",
-    timer: 1000,
-    showConfirmButton: false,
-  });
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
 
-  location.reload();
-}
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: error.message,
+      });
+    }
+  }
 
-async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: window.location.origin,
-    },
-  });
+  function renderData(data) {
+    const postContainer = document.getElementById("post");
+    const message = "NO POSTS FOUND!"
+    postContainer.innerHTML = "";
+    if (!data || data.length === 0) {
+      postContainer.innerHTML =  `<h1 id="message">${message}</h1>`
+      return
+    }
 
-  if (error) {
-    Swal.fire({
-      icon: "error",
-      title: error.message,
+    data.forEach((item) => {
+
+
+      postContainer.innerHTML += `
+
+  <div
+  class="card post-card mb-4 text-white"
+  data-id="${item.id}"
+  data-userid="${item.user_id}"
+  data-background="${item.background}"
+  
+  style="
+  background-image:url('${item.background}');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  "
+  >
+  
+  <div
+  style="
+  background:rgba(0,0,0,.45);
+  border-radius:16px;
+  padding:18px;
+  height:100%;
+  ">
+  
+  <div class="card-header d-flex align-items-center">
+  
+  
+  <div>
+  
+  <strong>${item.name}</strong>
+  
+  <br>
+  
+  <small>
+  
+  ${item.created_at
+          ? new Date(item.created_at).toLocaleTimeString()
+          : ""
+        }
+  
+  </small>
+  
+  </div>
+  
+  </div>
+  
+  <div class="card-body">
+  
+  <h5>${item.title}</h5>
+  
+  <p>${item.description}</p>
+  
+  </div>
+  
+  <div class="card-footer border-0 bg-transparent text-end">
+  
+  <button
+  class="btn editBtn me-2"
+  onclick="editpost(this)"
+  >
+  
+  Edit
+  
+  </button>
+  
+  <button
+  class="btn btn-danger"
+  onclick="deletePost(this)"
+  >
+  
+  Delete
+  
+  </button>
+  
+  </div>
+  
+  </div>
+  
+  </div>
+  
+  `;
     });
   }
-}
+
+  supabase
+  .channel('room1')
+  .on('postgres_changes', { event: '*', schema: '*' }, payload => {
+    console.log('Change received!', payload)
+  })
+  .subscribe()
 
 
 
-// ========================= GLOBAL EXPORTS =========================
+  // ========================= GLOBAL EXPORTS =========================
 
-window.signInWithGoogle = signInWithGoogle;
-window.post = post;
-window.editpost = editpost;
-window.deletePost = deletePost;
-window.searchPosts = searchPosts;
-window.selectBackground = selectBackground;
-window.logout = logout;
+  window.signInWithGoogle = signInWithGoogle;
+  window.post = post;
+  window.editpost = editpost;
+  window.deletePost = deletePost;
+  window.searchPosts = searchPosts;
+  window.selectBackground = selectBackground;
+  window.logout = logout;
+  window.renderData = renderData;
